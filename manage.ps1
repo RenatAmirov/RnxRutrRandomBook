@@ -35,9 +35,9 @@ if ($Action -eq 'Install') {
     }
     $task = Register-ScheduledTask -TaskPath '\' -TaskName $taskName -Action $process `
         -Trigger $trigger -Principal $principal -Settings $settings `
-        -Description 'Opens a random RuTracker book with Ctrl+R+N+D.' -Force
+        -Description 'Opens a random RuTracker book with Ctrl+R+N+D or Ctrl+I+T.' -Force
     $task | Start-ScheduledTask
-    Write-Output 'Installed and started. Hotkey: Ctrl+R+N+D.'
+    Write-Output 'Installed and started. Hotkeys: Ctrl+R+N+D and Ctrl+I+T.'
     return
 }
 

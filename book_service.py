@@ -22,6 +22,13 @@ BOOK_FORUMS = (
     2043, 2042, 2041, 2044, 2039, 2045, 2080, 2047,  # Fiction and genres
     39, 995, 2028, 1426, 2337,  # General, philosophy, math, programming, children's nonfiction
 )
+# RuTracker's Computer Literature forum and its book subforums.
+COMPUTER_BOOK_FORUMS = (1418, 1422, 1423, 1424, 1445, 1425, 1426, 1428, 1429, 1430, 1431, 1433)
+HOTKEY_FORUMS = {
+    frozenset({0x13, 0x31, 0x20}): BOOK_FORUMS,  # Physical R, N, D keys
+    frozenset({0x17, 0x14}): COMPUTER_BOOK_FORUMS,  # Physical I, T keys
+}
+CHORD_BY_SCAN_CODE = {scan: chord for chord in HOTKEY_FORUMS for scan in chord}
 
 WH_KEYBOARD_LL = 13
 HC_ACTION = 0
@@ -32,7 +39,6 @@ ERROR_ALREADY_EXISTS = 183
 VK_CONTROL = 0x11
 CTRL_KEYS = {0xA2, 0xA3}  # VK_LCONTROL, VK_RCONTROL
 OTHER_MODIFIERS = (0x10, 0x12, 0x5B, 0x5C)  # Shift, Alt, left/right Windows
-BOOK_KEYS = {0x13, 0x31, 0x20}  # Physical R, N, D keys (scan code set 1)
 INPUT_KEYBOARD = 1
 KEYEVENTF_EXTENDEDKEY = 0x0001
 KEYEVENTF_KEYUP = 0x0002
@@ -53,12 +59,12 @@ def read_book_links(data):
     return sorted(links)
 
 
-def random_book_url():
-    forums = list(BOOK_FORUMS)
-    random.shuffle(forums)
+def random_book_url(forums=BOOK_FORUMS):
+    shuffled_forums = list(forums)
+    random.shuffle(shuffled_forums)
     deadline = monotonic() + 10
     last_error = None
-    for forum in forums:
+    for forum in shuffled_forums:
         remaining = deadline - monotonic()
         if remaining <= 0:
             break
@@ -193,7 +199,8 @@ class BookHotkey:
             self.consumed.update(self.pending)
             self.pending.clear()
 
-        if scan in BOOK_KEYS and event.vk_code != VK_PACKET and not event.flags & LLKHF_EXTENDED:
+        chord = CHORD_BY_SCAN_CODE.get(scan)
+        if chord and event.vk_code != VK_PACKET and not event.flags & LLKHF_EXTENDED:
             was_held = scan in self.held
             if released:
                 self.held.discard(scan)
@@ -205,17 +212,17 @@ class BookHotkey:
                 if scan in self.pending or scan in self.consumed:
                     return True
                 if not was_held and self.key_down(VK_CONTROL):
-                    if self.consumed:
+                    if not chord.isdisjoint(self.consumed):
                         self.consumed.add(scan)
                         return True
-                    if not any(self.key_down(vk) for vk in OTHER_MODIFIERS):
+                    if self.pending.keys() <= chord and not any(self.key_down(vk) for vk in OTHER_MODIFIERS):
                         if not self.pending:
                             self.pending_window = self.user32.GetForegroundWindow()
                         self.pending[scan] = KeyboardInput.from_event(event)
-                        if self.pending.keys() == BOOK_KEYS:
+                        if self.pending.keys() == chord:
                             self.consumed.update(self.pending)
                             self.pending.clear()
-                            self.on_press()
+                            self.on_press(HOTKEY_FORUMS[chord])
                         return True
 
         if not self.pending:
@@ -271,7 +278,7 @@ def listen_for_hotkey(on_press):
     if not hook:
         raise ctypes.WinError(ctypes.get_last_error())
 
-    LOGGER.info("Сочетание Ctrl+R+N+D активно.")
+    LOGGER.info("Сочетания Ctrl+R+N+D и Ctrl+I+T активны.")
     msg = wintypes.MSG()
     try:
         while (status := user32.GetMessageW(ctypes.byref(msg), None, 0, 0)) > 0:
@@ -299,17 +306,17 @@ def run_background():
 
         requests = Queue(maxsize=1)
 
-        def enqueue_request():
+        def enqueue_request(forums):
             try:
-                requests.put_nowait(None)
+                requests.put_nowait(forums)
             except Full:
                 pass
 
         def open_books():
             while True:
-                requests.get()
+                forums = requests.get()
                 try:
-                    url = random_book_url()
+                    url = random_book_url(forums)
                     open_in_yandex(url)
                     LOGGER.info("Открыта тема %s", url)
                 except (OSError, RuntimeError):
@@ -323,7 +330,7 @@ def run_background():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Открывает случайную книгу RuTracker по Ctrl+R+N+D.")
+    parser = argparse.ArgumentParser(description="Открывает случайную книгу RuTracker по Ctrl+R+N+D или Ctrl+I+T.")
     parser.add_argument("--url", action="store_true", help="вывести случайную ссылку для проверки")
     args = parser.parse_args()
     if args.url:
