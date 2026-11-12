@@ -35,9 +35,9 @@ if ($Action -eq 'Install') {
     }
     $task = Register-ScheduledTask -TaskPath '\' -TaskName $taskName -Action $process `
         -Trigger $trigger -Principal $principal -Settings $settings `
-        -Description 'Opens a random RuTracker book with Ctrl+R+N+D or Ctrl+I+T.' -Force
+        -Description 'Opens books from RuTracker and DjVu Online. Alt+T+A+G opens the DjVu Online tag catalog.' -Force
     $task | Start-ScheduledTask
-    Write-Output 'Installed and started. Hotkeys: Ctrl+R+N+D and Ctrl+I+T.'
+    Write-Output 'Installed and started. Hotkeys: Ctrl+R+N+D, Ctrl+I+T, Ctrl+M+A+T, Ctrl+F+I+Z, Ctrl+F+I+L, Alt+R+N+D, Alt+I+T and Alt+T+A+G.'
     return
 }
 
