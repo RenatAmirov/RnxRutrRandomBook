@@ -37,7 +37,7 @@ if ($Action -eq 'Install') {
         -Trigger $trigger -Principal $principal -Settings $settings `
         -Description 'Opens books from RuTracker and DjVu Online. Alt+T+A+G opens the DjVu Online tag catalog.' -Force
     $task | Start-ScheduledTask
-    Write-Output 'Installed and started. Hotkeys: Ctrl+R+N+D, Ctrl+I+T, Ctrl+M+A+T, Ctrl+F+I+Z, Ctrl+F+I+L, Alt+R+N+D, Alt+I+T and Alt+T+A+G.'
+    Write-Output 'Installed and started. Hotkeys: Ctrl+R+N+D, Ctrl+I+T, Ctrl+M+A+T, Ctrl+F+I+Z, Ctrl+F+I+L, Ctrl+R+E+L, Alt+R+N+D, Alt+I+T and Alt+T+A+G.'
     return
 }
 

@@ -30,6 +30,8 @@ BOOK_FORUMS = (
 )
 # RuTracker's Computer Literature forum and its book subforums.
 COMPUTER_BOOK_FORUMS = (1418, 1422, 1423, 1424, 1445, 1425, 1426, 1428, 1429, 1430, 1431, 1433)
+# Faith and Religion and its book subforums.
+RELIGION_BOOK_FORUMS = (1686, 2215, 2216, 2217, 2218, 2252, 2543)
 RND_KEYS = frozenset({0x13, 0x31, 0x20})  # Physical R, N, D keys
 IT_KEYS = frozenset({0x17, 0x14})  # Physical I, T keys
 
@@ -150,6 +152,7 @@ HOTKEY_ACTIONS = {
         frozenset({0x32, 0x1E, 0x14}): partial(random_book_url, (MATH_FORUM,)),  # M, A, T
         frozenset({0x21, 0x17, 0x2C}): partial(random_book_url, (PHYSICS_FORUM,)),  # F, I, Z
         frozenset({0x21, 0x17, 0x26}): partial(random_book_url, (PHILOSOPHY_FORUM,)),  # F, I, L
+        frozenset({0x13, 0x12, 0x26}): partial(random_book_url, RELIGION_BOOK_FORUMS),  # R, E, L
     },
     VK_MENU: {
         RND_KEYS: random_djvu_book_url,
@@ -390,7 +393,7 @@ def listen_for_hotkey(on_press):
         raise ctypes.WinError(ctypes.get_last_error())
 
     LOGGER.info(
-        "Активны Ctrl+R+N+D, Ctrl+I+T, Ctrl+M+A+T, Ctrl+F+I+Z, Ctrl+F+I+L, "
+        "Активны Ctrl+R+N+D, Ctrl+I+T, Ctrl+M+A+T, Ctrl+F+I+Z, Ctrl+F+I+L, Ctrl+R+E+L, "
         "Alt+R+N+D, Alt+I+T и Alt+T+A+G."
     )
     msg = wintypes.MSG()
@@ -449,7 +452,7 @@ def main():
     parser = argparse.ArgumentParser(
         description=(
             "Открывает случайную книгу RuTracker по Ctrl+R+N+D, Ctrl+I+T, "
-            "Ctrl+M+A+T, Ctrl+F+I+Z или Ctrl+F+I+L, книгу DjVu Online по Alt+R+N+D или Alt+I+T "
+            "Ctrl+M+A+T, Ctrl+F+I+Z, Ctrl+F+I+L или Ctrl+R+E+L, книгу DjVu Online по Alt+R+N+D или Alt+I+T "
             "и каталог по тегу по Alt+T+A+G."
         )
     )
